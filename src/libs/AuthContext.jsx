@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { base44 } from '@/api/base444Client';
+import { base44 } from '@/api/base44Client';
 import { appParams } from '@/libs/app-params';
 
 const AuthContext = createContext();
