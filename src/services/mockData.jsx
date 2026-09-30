@@ -3,16 +3,16 @@
 // without rebuilding the frontend. Nothing here is real "live" data.
 
 export const CATEGORIES = [
-  { id: "ALL", label: "All", icon: "🌍", color: "#22d3ee" },
-  { id: "SEARCH", label: "Search", icon: "🔎", color: "#3b82f6" },
-  { id: "MUSIC", label: "Music", icon: "🎵", color: "#ec4899" },
-  { id: "MARKETS", label: "Markets", icon: "📈", color: "#10b981" },
+  { id: "ALL", label: "All", icon: "", color: "#22d3ee" },
+  { id: "SEARCH", label: "Search", icon: "", color: "#3b82f6" },
+  { id: "MUSIC", label: "Music", icon: "", color: "#ec4899" },
+  { id: "MARKETS", label: "Markets", icon: "", color: "#10b981" },
   { id: "CRYPTO", label: "Crypto", icon: "₿", color: "#f59e0b" },
-  { id: "VIRAL", label: "Viral", icon: "🔥", color: "#ef4444" },
-  { id: "GAMING", label: "Gaming", icon: "🎮", color: "#8b5cf6" },
-  { id: "SOCIAL", label: "Social", icon: "📱", color: "#06b6d4" },
-  { id: "NEWS", label: "News", icon: "📰", color: "#fbbf24" },
-  { id: "ONLINE", label: "Online Activity", icon: "👥", color: "#14b8a6" },
+  { id: "VIRAL", label: "Viral", icon: "", color: "#ef4444" },
+  { id: "GAMING", label: "Gaming", icon: "", color: "#8b5cf6" },
+  { id: "SOCIAL", label: "Social", icon: "", color: "#06b6d4" },
+  { id: "NEWS", label: "News", icon: "", color: "#fbbf24" },
+  { id: "ONLINE", label: "Online Activity", icon: "", color: "#14b8a6" },
 ];
 
 export const CATEGORY_MAP = CATEGORIES.reduce((m, c) => ((m[c.id] = c), m), {});

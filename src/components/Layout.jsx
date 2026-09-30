@@ -11,40 +11,66 @@ export default function Layout() {
 
   useEffect(() => {
     const openSearch = () => setSearchOpen(true);
-    const cmd = (e) => {
+
+    const handleCommandKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setCmdOpen((o) => !o);
+        setCmdOpen((open) => !open);
       }
     };
+
     window.addEventListener("nexus:open-search", openSearch);
-    window.addEventListener("keydown", cmd);
+    window.addEventListener("keydown", handleCommandKey);
+
     return () => {
       window.removeEventListener("nexus:open-search", openSearch);
-      window.removeEventListener("keydown", cmd);
+      window.removeEventListener("keydown", handleCommandKey);
     };
   }, []);
 
-  const handleSearchResult = (r) => {
+  const handleSearchResult = (result) => {
     setSearchOpen(false);
-    if (r.target.kind === "country") navigate(`/country/${r.target.code}`);
-    else if (r.target.kind === "topic") navigate("/trends");
+
+    if (result.target.kind === "country") {
+      navigate(`/country/${result.target.code}`);
+    } else if (result.target.kind === "topic") {
+      navigate("/trends");
+    }
   };
 
-  const handleCommand = (cmd) => {
+  const handleCommand = (command) => {
     setCmdOpen(false);
-    const a = cmd.action;
-    if (a.kind === "nav") navigate(a.to);
-    else if (a.kind === "country") navigate(`/country/${a.code}`);
-    else if (a.kind === "search") setSearchOpen(true);
+
+    const action = command.action;
+
+    if (action.kind === "nav") {
+      navigate(action.to);
+    } else if (action.kind === "country") {
+      navigate(`/country/${action.code}`);
+    } else if (action.kind === "search") {
+      setSearchOpen(true);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#05070b] text-white">
+    <div className="min-h-screen bg-[#05070b] text-white antialiased">
       <NavigationBar />
-      <Outlet />
-      <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} onResult={handleSearchResult} />
-      <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} onRun={handleCommand} />
+
+      <main>
+        <Outlet />
+      </main>
+
+      <GlobalSearch
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onResult={handleSearchResult}
+      />
+
+      <CommandPalette
+        open={cmdOpen}
+        onClose={() => setCmdOpen(false)}
+        onRun={handleCommand}
+      />
     </div>
   );
 }

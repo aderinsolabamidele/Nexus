@@ -1,53 +1,99 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NexusGlobe from "@/components/globe/NexusGlobe";
 import CategorySelector from "@/components/CategorySelector";
 import SignalFeed from "@/components/SignalFeed";
 import CountryPanel from "@/components/CountryPanel";
 import LiveIndicator from "@/components/LiveIndicator";
-import { GlobeService, CountriesService, CityIntelligenceService } from "@/services/nexus";
-import { CATEGORY_MAP, CATEGORY_METRICS } from "@/services/mockData";
+import {
+  GlobeService,
+  CountriesService,
+  CityIntelligenceService,
+} from "@/services/nexus";
+import {
+  CATEGORY_MAP,
+  CATEGORY_METRICS,
+} from "@/services/mockData";
 import CityPanel from "@/components/ui/CityPanel";
-import { Activity, Globe2 } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 export default function Home() {
   const navigate = useNavigate();
   const globeRef = useRef(null);
-
-  const [category, setCategory] = useState("ALL");
-  const [selected, setSelected] = useState(null); // country detail object
-  const [city, setCity] = useState(null);
-  const [cityIntel, setCityIntel] = useState(null);
   const connectionLineRef = useRef(null);
 
-  const markers = useMemo(() => GlobeService.markers("ALL"), []);
-  const arcs = useMemo(() => GlobeService.arcs(category), [category]);
-  const metrics = useMemo(() => CATEGORY_METRICS[category] || CATEGORY_METRICS.ALL, [category]);
+  const [category, setCategory] = useState("ALL");
+  const [selected, setSelected] = useState(null);
+  const [city, setCity] = useState(null);
+  const [cityIntel, setCityIntel] = useState(null);
 
-  // Clicking a marker: zoom the globe toward it and open the city intelligence panel.
+  const markers = useMemo(
+    () => GlobeService.markers("ALL"),
+    []
+  );
+
+  const arcs = useMemo(
+    () => GlobeService.arcs(category),
+    [category]
+  );
+
+  const metrics = useMemo(
+    () =>
+      CATEGORY_METRICS[category] ||
+      CATEGORY_METRICS.ALL,
+    [category]
+  );
+
   const handleSelectMarker = async (marker) => {
-    globeRef.current?.focus(marker.lat, marker.lng, 2.4, true);
-    const intel = await CityIntelligenceService.get(marker.city, category);
-    if (intel) setCityIntel(intel);
+    globeRef.current?.focus(
+      marker.lat,
+      marker.lng,
+      2.4,
+      true
+    );
+
+    const intel = await CityIntelligenceService.get(
+      marker.city,
+      category
+    );
+
+    if (intel) {
+      setCityIntel(intel);
+    }
   };
 
-  // Drill into a specific city (GLOBAL → COUNTRY → CITY transition).
-  const handleSelectCity = async (c) => {
+  const handleSelectCity = async (selectedCity) => {
     setSelected(null);
-    globeRef.current?.focus(c.lat, c.lng, 2.0, true);
-    const intel = await CityIntelligenceService.get(c.name, category);
-    if (intel) setCityIntel(intel);
+
+    globeRef.current?.focus(
+      selectedCity.lat,
+      selectedCity.lng,
+      2.0,
+      true
+    );
+
+    const intel =
+      await CityIntelligenceService.get(
+        selectedCity.name,
+        category
+      );
+
+    if (intel) {
+      setCityIntel(intel);
+    }
   };
 
-  // Selecting a live signal briefly highlights its location on the globe
-  // and draws a subtle connection from the signals panel to that point.
-  const handleSelectSignal = (sig) => {
-    globeRef.current?.highlight(sig.lat, sig.lng);
+  const handleSelectSignal = (signal) => {
+    globeRef.current?.highlight(
+      signal.lat,
+      signal.lng
+    );
   };
 
-  // Open the country intelligence panel from the city panel.
   const handleOpenCountry = async (code) => {
-    const country = await CountriesService.get(code);
+    const country =
+      await CountriesService.get(code);
+
     if (country) {
       setCityIntel(null);
       setSelected(country);
@@ -56,15 +102,18 @@ export default function Home() {
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-[#05070b]">
-      {/* atmospheric backdrop */}
+
+      {/* subtle atmosphere */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(34,211,238,0.06),transparent_60%)]" />
+
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_48%,rgba(34,211,238,0.045),transparent_38%)]" />
+
         <div
-          className="absolute inset-0 opacity-[0.04]"
+          className="absolute inset-0 opacity-[0.025]"
           style={{
             backgroundImage:
               "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
+            backgroundSize: "80px 80px",
           }}
         />
       </div>
@@ -78,12 +127,15 @@ export default function Home() {
           activeCategory={category}
           onSelectMarker={handleSelectMarker}
           connectionLineRef={connectionLineRef}
-          connectionAnchor={{ xPct: 0.2, yPct: 0.7 }}
+          connectionAnchor={{
+            xPct: 0.2,
+            yPct: 0.7,
+          }}
         />
       </div>
 
-      {/* signal → globe connection line */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-30">
+      {/* globe → signal connection */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-20">
         <line
           ref={connectionLineRef}
           x1="0"
@@ -92,85 +144,154 @@ export default function Home() {
           y2="0"
           stroke="#22d3ee"
           strokeWidth="1"
-          strokeDasharray="3 4"
-          style={{ opacity: 0, transition: "opacity 0.3s ease", filter: "drop-shadow(0 0 4px rgba(34,211,238,0.6))" }}
+          strokeDasharray="2 5"
+          style={{
+            opacity: 0,
+            transition: "opacity 0.3s ease",
+          }}
         />
       </svg>
 
-      {/* top-left status */}
-      <div className="absolute left-4 sm:left-6 top-20 z-30 hidden sm:block animate-[fadeIn_0.8s_ease]">
-        <div className="flex items-center gap-2 text-[10px] tracking-[0.2em] text-white/40">
-          <Globe2 className="w-3 h-3 text-cyan-300/60" />
-          GLOBAL MONITORING
-        </div>
-        <div className="mt-1 text-[11px] text-white/30">
-          {markers.length} active nodes · {arcs.length} live links
-        </div>
-      </div>
+      {/* top-left system readout */}
+      <div className="absolute left-5 sm:left-7 top-[82px] z-30 hidden sm:block">
 
-      {/* live indicator top-right */}
-      <div className="absolute right-4 sm:right-6 top-20 z-30 animate-[fadeIn_0.8s_ease]">
-        <LiveIndicator label="MONITORING" />
-      </div>
+        <div className="flex items-center gap-3">
+          <span className="w-1.5 h-1.5 bg-cyan-300 rounded-full shadow-[0_0_8px_rgba(103,232,249,0.8)]" />
 
-      {/* live signals feed - left */}
-      <div className="absolute left-3 sm:left-4 bottom-28 sm:bottom-24 z-30 w-[min(86vw,300px)] hidden sm:block">
-        <div className="rounded-xl border border-white/10 bg-[#070b12]/70 backdrop-blur-xl overflow-hidden">
-          <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-white/[0.06]">
-            <div className="flex items-center gap-2">
-              <LiveIndicator label="LIVE SIGNALS" />
-            </div>
-            <span className="text-[10px] text-white/30">streaming</span>
-          </div>
-          <div className="p-2 max-h-[42vh] overflow-y-auto no-scrollbar">
-            <SignalFeed category={category} onSelect={handleSelectSignal} />
-          </div>
+          <span className="text-[9px] tracking-[0.2em] text-white/40 uppercase">
+            Global field
+          </span>
+        </div>
+
+        <div className="mt-3 flex items-center gap-4 text-[10px] text-white/25">
+          <span>
+            {markers.length} nodes
+          </span>
+
+          <span className="w-px h-3 bg-white/10" />
+
+          <span>
+            {arcs.length} links
+          </span>
         </div>
       </div>
 
-      {/* activity ticker - right bottom (desktop) */}
-      <div className="absolute right-3 sm:right-4 bottom-28 sm:bottom-24 z-30 w-[min(86vw,260px)] hidden lg:block">
-        <div className="rounded-xl border border-white/10 bg-[#070b12]/70 backdrop-blur-xl p-4">
-          <div className="text-[10px] tracking-[0.2em] text-white/40 mb-3">GLOBAL ACTIVITY</div>
-          <div className="space-y-2.5">
-            {metrics.map((r) => {
-              const c = r.cat ? CATEGORY_MAP[r.cat].color : CATEGORY_MAP[category].color;
-              return (
-                <div key={r.label}>
-                  <div className="flex items-center justify-between text-[11px] mb-1">
-                    <span className="text-white/60">{r.label}</span>
-                    <span className="text-white/40 tabular-nums">{r.val}%</span>
-                  </div>
-                  <div className="h-1 rounded-full bg-white/[0.05] overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${r.val}%`, background: c, boxShadow: `0 0 8px -2px ${c}` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      {/* top-right status */}
+      <div className="absolute right-5 sm:right-7 top-[84px] z-30">
+        <LiveIndicator label="Monitoring" />
       </div>
 
-      {/* category selector - bottom center */}
-      <div className="absolute bottom-4 inset-x-0 z-30 flex justify-center px-3">
-        <div className="rounded-full border border-white/10 bg-[#070b12]/70 backdrop-blur-xl px-1.5 py-1 max-w-full">
-          <CategorySelector active={category} onChange={setCategory} />
-        </div>
-      </div>
+      {/* left signal rail */}
+      <aside className="absolute left-4 sm:left-6 bottom-[76px] sm:bottom-[70px] z-30 w-[290px] hidden sm:block">
 
-      {/* mobile signals toggle hint */}
-      <div className="absolute left-3 bottom-20 sm:hidden z-30">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-[9px] tracking-[0.2em] uppercase text-white/35">
+            Live signals
+          </span>
+
+          <span className="text-[9px] text-white/20">
+            {signalsLabel(category)}
+          </span>
+        </div>
+
+        <div className="border-t border-white/[0.1]">
+          <SignalFeed
+            category={category}
+            onSelect={handleSelectSignal}
+          />
+        </div>
+
         <button
           onClick={() => navigate("/signals")}
-          className="flex items-center gap-2 px-3 py-2 rounded-full border border-white/10 bg-[#070b12]/70 backdrop-blur-xl text-[11px] text-white/70"
+          className="mt-3 text-[9px] tracking-[0.14em] uppercase text-white/25 hover:text-white/60 transition-colors"
         >
-          <Activity className="w-3.5 h-3.5 text-emerald-400" />
-          Live signals
+          View all signals →
         </button>
+      </aside>
+
+      {/* right intelligence rail */}
+      <aside className="absolute right-4 sm:right-6 bottom-[76px] sm:bottom-[70px] z-30 w-[220px] hidden lg:block">
+
+        <div className="flex items-center justify-between pb-2 border-b border-white/[0.1]">
+          <span className="text-[9px] tracking-[0.2em] uppercase text-white/35">
+            Activity
+          </span>
+
+          <span className="text-[9px] text-white/20">
+            24H
+          </span>
+        </div>
+
+        <div className="pt-2">
+          {metrics.map((metric) => {
+            const color =
+              metric.cat
+                ? CATEGORY_MAP[metric.cat]?.color
+                : CATEGORY_MAP[category]?.color;
+
+            return (
+              <div
+                key={metric.label}
+                className="group py-2.5"
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] text-white/40">
+                    {metric.label}
+                  </span>
+
+                  <span className="text-[10px] tabular-nums text-white/30">
+                    {metric.val}
+                  </span>
+                </div>
+
+                <div className="h-px bg-white/[0.08]">
+                  <div
+                    className="h-px transition-all duration-700"
+                    style={{
+                      width: `${metric.val}%`,
+                      background: color,
+                      opacity: 0.75,
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-3 pt-3 border-t border-white/[0.08] flex items-center justify-between">
+          <span className="text-[9px] text-white/20">
+            Network activity
+          </span>
+
+          <ArrowUpRight className="w-3 h-3 text-white/20" />
+        </div>
+      </aside>
+
+      {/* category navigation */}
+      <div className="absolute bottom-0 inset-x-0 z-40">
+        <div className="border-t border-white/[0.08] bg-[#05070b]/80 backdrop-blur-md">
+
+          <div className="mx-auto max-w-[1700px] px-2 sm:px-6">
+            <div className="flex justify-center overflow-hidden">
+              <CategorySelector
+                active={category}
+                onChange={setCategory}
+              />
+            </div>
+          </div>
+
+        </div>
       </div>
+
+      {/* mobile signal access */}
+      <button
+        onClick={() => navigate("/signals")}
+        className="absolute left-4 bottom-[62px] z-30 sm:hidden flex items-center gap-2 text-[9px] uppercase tracking-[0.14em] text-white/45"
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+        Signals
+      </button>
 
       {/* country panel */}
       {selected && (
@@ -186,7 +307,7 @@ export default function Home() {
         />
       )}
 
-      {/* city intelligence panel */}
+      {/* city intelligence */}
       {cityIntel && (
         <CityPanel
           intel={cityIntel}
@@ -197,7 +318,24 @@ export default function Home() {
           onOpenCountry={handleOpenCountry}
         />
       )}
-
     </div>
   );
+}
+
+function signalsLabel(category) {
+  if (category === "ALL") return "All activity";
+
+  const labels = {
+    SEARCH: "Search",
+    MUSIC: "Music",
+    MARKETS: "Markets",
+    CRYPTO: "Crypto",
+    VIRAL: "Viral",
+    GAMING: "Gaming",
+    SOCIAL: "Social",
+    NEWS: "News",
+    ONLINE: "Online",
+  };
+
+  return labels[category] || "Activity";
 }
